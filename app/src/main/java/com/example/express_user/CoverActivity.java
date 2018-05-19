@@ -38,6 +38,7 @@ public class CoverActivity extends AppCompatActivity {
             public void onAnimationEnd(Animation animation) {
                 Intent intent = new Intent(CoverActivity.this,MainActivity.class);
                 startActivity(intent);
+                overridePendingTransition(R.anim.enter_anim,R.anim.enter_anim);
                 finish();
             }
 

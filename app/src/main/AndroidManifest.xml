@@ -15,7 +15,8 @@
             android:name=".MainActivity"
             android:theme="@style/MainActivityTheme">
         </activity>
-        <activity android:name=".ShowDeliveryActivity" />
+        <activity android:name=".ShowDeliveryActivity"
+            android:label=""/>
         <activity android:name=".CoverActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
