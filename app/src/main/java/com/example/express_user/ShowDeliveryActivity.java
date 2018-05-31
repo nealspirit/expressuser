@@ -19,11 +19,17 @@ import android.view.animation.TranslateAnimation;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.mysql.jdbc.Connection;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,58 +82,61 @@ public class ShowDeliveryActivity extends AppCompatActivity {
 
     private void initlist() {
         showProgressDialog();
-        HttpUtil.sendOkHttpRequest("http://192.168.1.105/delivery_data.json", new okhttp3.Callback() {
+
+        new Thread(new Runnable() {
+            private Connection connection = null;
+            Delivery delivery = null;
+
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void run() {
+                try{
+                    Class.forName("com.mysql.jdbc.Driver");
+                    connection = (Connection) DriverManager.getConnection("jdbc:mysql://39.108.211.170:3306/jsp_db", "root", "580420");
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    String sql = "select * from delivery_data where delivery_phone='" + phoneNum + "'";
+                    Statement stmt = connection.createStatement();
+                    ResultSet rs = stmt.executeQuery(sql);
+                    while(rs.next()){
+                        delivery = new Delivery();
+                        delivery.setdeliveryNum(rs.getString("delivery_num"));
+                        delivery.setPhoneNum(rs.getString("delivery_phone"));
+                        delivery.setLocation(rs.getString("delivery_location"));
+                        delivery.setRandomCode("random_num");
+                        deliveryList.add(delivery);
+                    }
+                    rs.close();
+                    stmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }finally {
+                    if (connection != null){
+                        try {
+                            connection.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         closeProgressDialog();
-                        Toast.makeText(ShowDeliveryActivity.this, "获取数据失败,请检查网络设置", Toast.LENGTH_SHORT).show();
+                        if (deliveryList.size() == 0){
+                            recyclerView.setVisibility(View.GONE);
+                            nodata.setVisibility(View.VISIBLE);
+                        }else {
+                            recyclerView.setVisibility(View.VISIBLE);
+                            nodata.setVisibility(View.GONE);
+                        }
                     }
                 });
             }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String responseData = response.body().string();
-                try {
-                    Delivery delivery = null;
-                    JSONArray jsonArray = new JSONArray(responseData);
-                    for(int i = 0; i < jsonArray.length(); i++){
-                        delivery = new Delivery();
-                        JSONObject jsonObject = jsonArray.getJSONObject(i);
-                        String phone = jsonObject.getString("delivery_phonenum");
-                        if (phone.equals(phoneNum)){
-                            String num = jsonObject.getString("delivery_num");
-                            String location = jsonObject.getString("delivery_location");
-                            String random = jsonObject.getString("random_num");
-
-                            delivery.setdeliveryNum(num);
-                            delivery.setPhoneNum(phone);
-                            delivery.setLocation(location);
-                            delivery.setRandomCode(random);
-                            deliveryList.add(delivery);
-                        }
-                    }
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            closeProgressDialog();
-                            if (deliveryList.size() == 0){
-                                recyclerView.setVisibility(View.GONE);
-                                nodata.setVisibility(View.VISIBLE);
-                            }else {
-                                recyclerView.setVisibility(View.VISIBLE);
-                                nodata.setVisibility(View.GONE);
-                            }
-                        }
-                    });
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        }).start();
     }
 
     @Override

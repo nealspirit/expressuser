@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,7 +55,6 @@ public class showDeliveryAdapter extends RecyclerView.Adapter<showDeliveryAdapte
             @Override
             public void onClick(View v) {
                 int position = viewHolder.getAdapterPosition();
-                int height_start = view.getHeight();
                 if (isShowQR.get(position)) {
                     viewHolder.showQRCode.setVisibility(View.GONE);
                     isShowQR.set(position, false);
@@ -64,7 +64,6 @@ public class showDeliveryAdapter extends RecyclerView.Adapter<showDeliveryAdapte
                     isShowQR.set(position, true);
                     performAnimate(v,202,602);
                 }
-                int height_end = view.getHeight();
             }
         });
         return viewHolder;
@@ -78,7 +77,7 @@ public class showDeliveryAdapter extends RecyclerView.Adapter<showDeliveryAdapte
         String hang = delivery.getLocation().split(" ")[0];
         String lie = delivery.getLocation().split(" ")[1];
         holder.deliveryLoc.setText(hang + "行" + lie + "列");
-        String QRtext = hang + lie + "#" + delivery.getRandomCode();
+        String QRtext = delivery.getLocation() + "#" + delivery.getRandomCode();
         Bitmap bitmap = ZxingUtils.createBitmap(QRtext);
         holder.showQRCode.setImageBitmap(bitmap);
         isShowQR.add(false);

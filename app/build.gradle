@@ -23,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     testImplementation 'junit:junit:4.12'
@@ -37,6 +37,7 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.5.0'
     implementation 'org.litepal.android:core:1.4.1'
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation files('libs/mysql-connector-java-5.1.46-bin.jar')
 }
 
 android {
